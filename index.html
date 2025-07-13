@@ -1,434 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>BrushStrokes - Hand Tracking Drawing</title>
-    <style>
-      body {
-        margin: 0;
-        padding: 20px;
-        font-family: Arial, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-      }
-      
-      .field {
-        background: white;
-        padding: 20px;
-        border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        max-width: 1200px;
-        margin: 0 auto;
-      }
-      
-      #canvas {
-        border: 3px solid #333;
-        border-radius: 10px;
-        cursor: crosshair;
-        display: block;
-        margin: 0 auto 20px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      }
-      
-      .video-container {
-        position: relative;
-        margin-bottom: 20px;
-        text-align: center;
-      }
-      
-      #videoInput {
-        width: 320px;
-        height: 240px;
-        border: 2px solid #333;
-        border-radius: 10px;
-        background: #000;
-      }
-      
-      .tools {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 15px;
-        flex-wrap: wrap;
-        padding: 15px;
-        background: #f8f9fa;
-        border-radius: 10px;
-        margin-top: 20px;
-      }
-      
-      .button {
-        padding: 10px 20px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: bold;
-        transition: all 0.3s;
-        text-decoration: none;
-        display: inline-block;
-      }
-      
-      .button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      }
-      
-      .home-btn {
-        background: #6c757d;
-        color: white;
-      }
-      
-      .toggle-btn {
-        background: #28a745;
-        color: white;
-      }
-      
-      .toggle-btn.active {
-        background: #dc3545;
-      }
-      
-      .eraser-btn {
-        background: #ffc107;
-        color: black;
-      }
-      
-      .clear-btn {
-        background: #dc3545;
-        color: white;
-      }
-      
-      .color-field {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        cursor: pointer;
-        border: 3px solid #333;
-        transition: transform 0.2s;
-      }
-      
-      .color-field:hover {
-        transform: scale(1.1);
-      }
-      
-      .color-picker {
-        width: 50px;
-        height: 40px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-      }
-      
-      .pen-range {
-        width: 100px;
-        height: 30px;
-      }
-      
-      .status {
-        text-align: center;
-        margin: 10px 0;
-        font-weight: bold;
-        padding: 10px;
-        border-radius: 8px;
-        background: #e9ecef;
-      }
-      
-      .status.active {
-        background: #d4edda;
-        color: #155724;
-      }
-      
-      .status.error {
-        background: #f8d7da;
-        color: #721c24;
-      }
-    </style>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="BrushStrokes is an interactive platform for creating digital artwork with a variety of painting tools and colors." />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="mystyle.css" />
+    <title>BrushStrokes</title>
   </head>
   <body>
-    <div class="field">
-      <h1 style="text-align: center; color: #333; margin-bottom: 30px;">
-        🎨 Hand Tracking Drawing Canvas
-      </h1>
-      
-      <div class="video-container">
-        <video id="videoInput" autoplay playsinline muted></video>
-        <div id="status" class="status">Camera not initialized</div>
-      </div>
-      
-      <canvas id="canvas"></canvas>
-      
-      <div class="tools">
-        <button class="button home-btn" onclick="window.location.href='index.html'">
-          🏠 Home
-        </button>
-        <button id="toggleBtn" class="button toggle-btn" onclick="toggleHandTracking()">
-          📷 Start Hand Tracking
-        </button>
-        <button class="button eraser-btn" onclick="eraseCanvas()">
-          🧹 Eraser
-        </button>
-        <button class="button clear-btn" onclick="clearCanvas()">
-          🗑️ Clear
-        </button>
-        <div onclick="change_color(this)" class="color-field" style="background: red"></div>
-        <div onclick="change_color(this)" class="color-field" style="background: blue"></div>
-        <div onclick="change_color(this)" class="color-field" style="background: green"></div>
-        <div onclick="change_color(this)" class="color-field" style="background: yellow"></div>
-        <div onclick="change_color(this)" class="color-field" style="background: purple"></div>
-        <div onclick="change_color(this)" class="color-field" style="background: orange"></div>
-        <input oninput="draw_color = this.value" type="color" class="color-picker" value="#000000" />
-        <input oninput="draw_width = this.value" type="range" class="pen-range" min="1" max="50" value="5" />
-      </div>
+    <div class="header">
+      <nav class="navbar navbar-expand-lg navbar-light navigation">
+        <div class="container">
+          <a class="navbar-brand" href="index.html"
+            ><img src="images/logo.avif" width="120px" alt="BrushStrokes Logo"></a
+          >
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="mx-auto navbar-nav me-auto mb-2 mb-lg-0">
+              <li class="nav-item">
+                <a class="nav-link active" href="index.html">Home</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#about">About</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="drawing.html">BrushStrokes</a>
+              </li>
+            </ul>
+          </div>
+          <a class="navbar-brand d-lg-block d-none" href="drawing.html"
+            ><img src="images/logo2.jpg" width="70px" alt="Secondary BrushStrokes Logo"></a
+          >
+        </div>
+      </nav>
     </div>
 
-    <!-- Load MediaPipe Hands -->
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/hands.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3/drawing_utils.js"></script>
+    <section class="paint" id="about">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6">
+            <img
+              src="images/final-rainbow.gif"
+              class="img-fluid"
+              alt="Rainbow BrushStrokes Animation"
+            />
+          </div>
+          <div class="col-md-6">
+            <p>
+              <b>Brushstrokes</b> is an interactive website designed for art enthusiasts. Developed by Showrin Rahman, it provides a user-friendly platform for anyone to create digital artwork using a variety of painting tools. The website offers a wide range of colors to choose from, allowing users to select their preferred color palette for their artwork. Additionally, the website allows users to erase any mistakes and start over with a clean slate. Brushstrokes also provides a "clear" button, which can be used to completely remove all the colors on the canvas.
+            </p>
+            <div class="row">
+              <div class="col-md-6 col-sm-6 mb-2">
+                <a href="drawing.html" class="btn btn-success">Draw Now!</a>
+              </div>
+              <div class="col-md-6 col-sm-6 mb-2">
+                <a
+                  href="https://www.linkedin.com/in/showrin-rahman-36a902227/"
+                  class="btn btn-success"
+                  >Contact Me!</a
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    <script>
-      // Canvas setup
-      const canvas = document.getElementById("canvas");
-      const video = document.getElementById("videoInput");
-      const statusDiv = document.getElementById("status");
-      const toggleBtn = document.getElementById("toggleBtn");
-      
-      canvas.width = Math.min(window.innerWidth - 60, 800);
-      canvas.height = 400;
-
-      let context = canvas.getContext("2d");
-      let start_background = "white";
-      context.fillStyle = start_background;
-      context.fillRect(0, 0, canvas.width, canvas.height);
-
-      let draw_color = "black";
-      let draw_width = 5;
-      let is_drawing = false;
-      let handTrackingEnabled = false;
-      let lastX = 0;
-      let lastY = 0;
-      let hands = null;
-      let camera = null;
-
-      // Mouse/touch event listeners for traditional drawing
-      canvas.addEventListener("touchstart", start, false);
-      canvas.addEventListener("touchmove", draw, false);
-      canvas.addEventListener("mousedown", start, false);
-      canvas.addEventListener("mousemove", draw, false);
-      canvas.addEventListener("touchend", stop, false);
-      canvas.addEventListener("mouseup", stop, false);
-      canvas.addEventListener("mouseout", stop, false);
-
-      function start(event) {
-        if (handTrackingEnabled) return; // Don't draw with mouse when hand tracking is on
-        
-        is_drawing = true;
-        context.beginPath();
-        const rect = canvas.getBoundingClientRect();
-        const x = (event.clientX || event.touches[0].clientX) - rect.left;
-        const y = (event.clientY || event.touches[0].clientY) - rect.top;
-        context.moveTo(x, y);
-        lastX = x;
-        lastY = y;
-        event.preventDefault();
-      }
-
-      function draw(event) {
-        if (!is_drawing || handTrackingEnabled) return;
-        
-        const rect = canvas.getBoundingClientRect();
-        const x = (event.clientX || event.touches[0].clientX) - rect.left;
-        const y = (event.clientY || event.touches[0].clientY) - rect.top;
-        
-        context.lineTo(x, y);
-        context.strokeStyle = draw_color;
-        context.lineWidth = draw_width;
-        context.lineCap = "round";
-        context.lineJoin = "round";
-        context.stroke();
-        lastX = x;
-        lastY = y;
-        event.preventDefault();
-      }
-
-      function stop(event) {
-        if (is_drawing && !handTrackingEnabled) {
-          context.stroke();
-          context.closePath();
-          is_drawing = false;
-        }
-        event.preventDefault();
-      }
-
-      function clearCanvas() {
-        context.fillStyle = start_background;
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        context.fillRect(0, 0, canvas.width, canvas.height);
-      }
-
-      function eraseCanvas() {
-        draw_color = start_background;
-      }
-
-      function change_color(element) {
-        draw_color = element.style.background;
-      }
-
-      // Hand tracking functions
-      function initializeHandTracking() {
-        if (!window.Hands) {
-          statusDiv.textContent = "MediaPipe Hands not loaded";
-          statusDiv.className = "status error";
-          return;
-        }
-
-        hands = new Hands({
-          locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/${file}`,
-        });
-
-        hands.setOptions({
-          maxNumHands: 1,
-          modelComplexity: 1,
-          minDetectionConfidence: 0.7,
-          minTrackingConfidence: 0.5,
-        });
-
-        hands.onResults(onResults);
-        statusDiv.textContent = "Hand tracking initialized";
-        statusDiv.className = "status";
-      }
-
-      function toggleHandTracking() {
-        if (!hands) {
-          initializeHandTracking();
-        }
-
-        if (handTrackingEnabled) {
-          stopHandTracking();
-        } else {
-          startHandTracking();
-        }
-      }
-
-      function startHandTracking() {
-        navigator.mediaDevices.getUserMedia({ 
-          video: { 
-            width: 640, 
-            height: 480,
-            facingMode: 'user'
-          } 
-        })
-        .then(stream => {
-          video.srcObject = stream;
-          video.play();
-          
-          if (!camera) {
-            camera = new Camera(video, {
-              onFrame: async () => {
-                if (handTrackingEnabled) {
-                  await hands.send({ image: video });
-                }
-              },
-              width: 640,
-              height: 480,
-            });
-          }
-          
-          camera.start();
-          handTrackingEnabled = true;
-          statusDiv.textContent = "Hand tracking active - Point with index finger to draw";
-          statusDiv.className = "status active";
-          toggleBtn.textContent = "📷 Stop Hand Tracking";
-          toggleBtn.className = "button toggle-btn active";
-        })
-        .catch(err => {
-          console.error('Error accessing camera:', err);
-          statusDiv.textContent = "Camera access denied or not available";
-          statusDiv.className = "status error";
-        });
-      }
-
-      function stopHandTracking() {
-        handTrackingEnabled = false;
-        if (camera) {
-          camera.stop();
-        }
-        if (video.srcObject) {
-          video.srcObject.getTracks().forEach(track => track.stop());
-        }
-        statusDiv.textContent = "Hand tracking stopped";
-        statusDiv.className = "status";
-        toggleBtn.textContent = "📷 Start Hand Tracking";
-        toggleBtn.className = "button toggle-btn";
-        
-        if (is_drawing) {
-          context.stroke();
-          context.closePath();
-          is_drawing = false;
-        }
-      }
-
-      function onResults(results) {
-        if (!handTrackingEnabled) return;
-
-        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-          const landmarks = results.multiHandLandmarks[0];
-          
-          // Use index finger tip (landmark 8) for drawing
-          const indexFingerTip = landmarks[8];
-          const indexFingerMCP = landmarks[5]; // Index finger MCP joint
-          const middleFingerTip = landmarks[12];
-          
-          // Map video coordinates to canvas coordinates (flip horizontally for mirror effect)
-          const x = (1 - indexFingerTip.x) * canvas.width;
-          const y = indexFingerTip.y * canvas.height;
-
-          // Gesture detection: Index finger up, middle finger down
-          const isIndexFingerUp = indexFingerTip.y < indexFingerMCP.y;
-          const isMiddleFingerDown = middleFingerTip.y > landmarks[9].y; // Middle finger MCP
-          
-          const shouldDraw = isIndexFingerUp && isMiddleFingerDown;
-
-          if (shouldDraw) {
-            if (!is_drawing) {
-              is_drawing = true;
-              context.beginPath();
-              context.moveTo(x, y);
-              lastX = x;
-              lastY = y;
-            } else {
-              // Smooth line drawing
-              context.lineTo(x, y);
-              context.strokeStyle = draw_color;
-              context.lineWidth = draw_width;
-              context.lineCap = "round";
-              context.lineJoin = "round";
-              context.stroke();
-              lastX = x;
-              lastY = y;
-            }
-          } else {
-            if (is_drawing) {
-              context.stroke();
-              context.closePath();
-              is_drawing = false;
-            }
-          }
-        } else {
-          // No hand detected
-          if (is_drawing) {
-            context.stroke();
-            context.closePath();
-            is_drawing = false;
-          }
-        }
-      }
-
-      // Initialize when page loads
-      window.addEventListener('load', () => {
-        statusDiv.textContent = "Ready - Click 'Start Hand Tracking' to begin";
-        statusDiv.className = "status";
-      });
-    </script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"
+      integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"
+      integrity="sha384-mQ93GR66B00ZXjt0YO5KlohRA5SY2XofN4zfuZxLkoj1gXtW8ANNCe9d5Y3eG5eD"
+      crossorigin="anonymous"
+    ></script>
   </body>
 </html>
